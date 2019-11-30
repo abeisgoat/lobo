@@ -5,6 +5,7 @@ import thunkMiddleware from "redux-thunk";
 import firebase from "firebase/app";
 import "firebase/auth";
 import "firebase/database";
+import "firebase/storage";
 
 import AppContainer from "./App";
 import "./index.scss";

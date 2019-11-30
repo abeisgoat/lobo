@@ -1,12 +1,19 @@
 import React from "react";
 import { connect, useSelector } from "react-redux";
 import { useFirebaseConnect } from "react-redux-firebase";
-import AddPlace, {add_place_data, openAddPlace} from "./AddPlace";
+import AddPlace, {add_place_data, openAddPlace } from "./AddPlace";
 import {combineReducers} from "redux";
+import firebase from "firebase/app";
+import {store} from "../index";
 
 export const setYelpPlace = place => ({
   type: "SET_YELP_PLACE",
   place
+});
+
+export const setYelpPlaceFiles = files => ({
+  type: "SET_YELP_PLACE_FILES",
+  files
 });
 
 export const clearYelpPlace = () => ({
@@ -23,12 +30,28 @@ export const view_place_data = (
   switch (action.type) {
     case "SET_YELP_PLACE":
       return { ...state, place: action.place };
+    case "SET_YELP_PLACE_FILES":
+      return {...state, place: {...state.place, files: action.files}}
     case "CLEAR_YELP_PLACE":
       return { ...state, place: null };
     default:
       return state;
   }
 };
+
+function setYelpPlaceWithFiles(place) {
+  return (dispatch) => {
+    const id = place.id.replace(".", "_");
+    const storageRef = firebase.storage().ref(`places/${id}`);
+    dispatch(setYelpPlace(place));
+
+    return storageRef.list().then(async (ls) => {
+      const files = await Promise.all(ls.items.map((item) => item.getDownloadURL()));
+      dispatch(setYelpPlaceFiles(files));
+    });
+
+  }
+}
 
 export const yelp_data = combineReducers({
   view_place_data,
@@ -65,9 +88,20 @@ export function BarImageH2(props) {
 }
 
 function OverlayViewPlace(props) {
+  const id = props.place.id.replace(".", "_");
+  const storageRef = firebase.storage().ref(`places/${id}`);
+
+  const onFilesChanged = (event) => {
+    [...event.target.files].forEach((file, index) => {
+      storageRef.child(`${props.place.files.length + index}`).put(file).then(() => {
+        console.log(`upload done on ${index}`)
+      });
+    });
+  };
+
   return <div
       className={`overlay ${props.place && "visible"}`}
-      onClick={() => props.clearYelpPlace()}
+      // onClick={() => props.clearYelpPlace()}
   >
     <div className="walls">
       <div className="wall">
@@ -80,6 +114,11 @@ function OverlayViewPlace(props) {
             <li>📍  {props.place.address}</li>
             <li>🍹  {props.place.categories}</li>
           </ul>
+          <div className="grid">
+            {(props.place.files || []).map((url) => <div className="image" style={{backgroundImage: `url(${url})`}} key={url}></div>)}
+          </div>
+          <hr />
+          <input type="file" multiple={true} onChange={onFilesChanged}/>
         </div>
       </div>
     </div>
@@ -112,7 +151,7 @@ function Yelp(props) {
                   title = {place.name}
                   subtitle = {place.categories}
                   image = {getPlaceImage(place.name)}
-                  onClick = {() => props.setYelpPlace(place)}
+                  onClick = {() => store.dispatch(setYelpPlaceWithFiles(place))}
                 />
               })}
             </ul>
