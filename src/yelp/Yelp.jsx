@@ -101,15 +101,20 @@ function OverlayViewPlace(props) {
 
   return <div
       className={`overlay ${props.place && "visible"}`}
-      // onClick={() => props.clearYelpPlace()}
   >
     <div className="walls">
       <div className="wall">
         <div className="tray">
-          <BarImageH2
-              title={props.place.name}
-              image={getPlaceImage(props.place.name)}
-          />
+          <div
+              className="bar"
+              image="true"
+              style={{ backgroundImage: `url('${getPlaceImage(props.place.name)}')` }}
+          >
+            <div className="icons" top_right="true">
+              <i className="material-icons" onClick={props.clearYelpPlace}>close</i>
+            </div>
+            <h2 bottom_left="true">{props.place.name}</h2>
+          </div>
           <ul>
             <li>📍  {props.place.address}</li>
             <li>🍹  {props.place.categories}</li>
