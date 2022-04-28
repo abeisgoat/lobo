@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@mapbox/mapbox-sdk": "^0.9.0",
-    "cross-fetch": "^3.0.4",
+    "cross-fetch": "^3.1.5",
     "firebase": "^7.5.0",
     "fuse.js": "^3.4.6",
     "react": "^16.12.0",
